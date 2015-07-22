@@ -1,0 +1,23 @@
+# ======================================
+# General parameters SANGER
+# ======================================
+
+# Help: <br/>This template is used to preprocess Sanger genomic data <br/>
+
+# Help: <br/><b>Plugin list and aplication order:</b><br/>
+
+# Help: <ul>
+# Help: <li>PluginIndeterminations: retaining the longest sequence fragment without indeterminations (N)</li>
+# Help: <li>PluginAdapters: trimming adapters</li>
+
+# Help: <li>PluginUserContaminants: discarding sequences matching any entry in the user contaminant database saving them in a separate file</li>
+
+# Help: <li>PluginContaminants: trimming the contaminant fragments found in the contaminant database. When contamination is prevalent, sequences are rejected. </li>
+# Help: <li>PluginVectors: trimming any cloning vector found in SeqTrimNEXT database. </li>
+# Help: <li>PluginLowQuality: trimming low quality regions from sequences. </li>
+# Help: </ul>
+
+plugin_list = PluginIndeterminations,PluginSangerAdapters,PluginFindPolyAt,PluginContaminants,PluginVectors,PluginLowQuality
+
+# do not remove cloned sequences
+remove_clonality=false

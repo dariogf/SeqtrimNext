@@ -1,0 +1,454 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+#     SeqTrimNext: Next generation sequencing preprocessor
+#     Copyright (C) <2011>
+#     Authors: Almudena Bocinos Rioboo, Diego Dario Guerrero Fernandez,
+#              Rocio Bautista Moreno, Juan Falgueras Cano & M. Gonzalo Claros
+#              email: soporte@scbi.uma.es - http://www.scbi.uma.es
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#= SEQTRIM II
+#
+#== Running
+#
+# Seqtrim can be run locally or in a parallel/distributted environment.
+#
+#=== Running locally
+#* list
+#
+#=== Running in a distributted environment
+#
+#== SEC 2
+#
+#=== SUB 2.1
+#
+
+
+# #finds the classes that were in the folder 'classes'
+# ROOT_PATH=File.dirname(__FILE__)
+# $: << File.expand_path(File.join(ROOT_PATH, 'classes'))
+#
+# #finds the classes that were in the folder 'plugins'
+# $: << File.expand_path(File.join(ROOT_PATH, 'plugins'))
+#
+#
+# #finds the classes that were in the folder 'plugins'
+# $: << File.expand_path(File.join(ROOT_PATH, 'actions'))
+#
+# #finds the classes that were in the folder 'utils'
+# $: << File.expand_path(File.join(ROOT_PATH, 'utils'))
+#
+# $: << File.expand_path(File.join(ROOT_PATH, 'classes','em_classes'))
+
+# to test scbi_drb gem locally
+# $: << File.expand_path('~/progs/ruby/gems/scbi_drb/lib/')
+
+# $: << File.expand_path(ROOT_PATH)
+
+$: << File.expand_path('~/progs/ruby/gems/seqtrimnext/lib/')
+# $: << File.expand_path('~/progs/ruby/gems/scbi_mapreduce/lib/')
+
+require 'seqtrimnext'
+require 'scbi_headers'
+
+
+def put_header
+  header = ScbiHeader.new('SeqTrimNEXT',Seqtrimnext::SEQTRIM_VERSION)
+
+  header.description="SeqtrimNEXT is a customizable and distributed pre-processing software for NGS (Next Generation Sequencing) biological data. It makes use of scbi_mapreduce gem to be able to run in parallel and distributed environments. It is specially suited for Roche 454 (normal and paired-end) & Ilumina datasets, although it could be easyly adapted to any other situation."
+
+  header.copyright='2011'
+
+  header.authors<< "Darío Guerrero"
+  header.authors<< "Almudena Bocinos"
+  header.authors<< "Rocío Bautista"
+  header.authors<< "Noé Fernández"
+  header.authors<< "Juan Falgueras"
+  header.authors<< "M. Gonzalo Claros"
+
+  # header.articles<< "Article one: with one description line"
+  # header.articles<< "Article two: with one description line"
+
+  # To output the header
+  puts header
+
+end
+
+put_header
+
+############ PATHS #######################
+$SEQTRIM_PATH = ROOT_PATH
+
+if ENV['SEQTRIMNEXT_INIT'] && File.exists?(ENV['SEQTRIMNEXT_INIT'])
+  $SEQTRIMNEXT_INIT=File.expand_path(ENV['SEQTRIMNEXT_INIT'])
+else
+  $SEQTRIMNEXT_INIT=File.join($SEQTRIM_PATH,'init_env')
+end
+
+# if there is a BLASTDB environment var, then use it
+if ENV['BLASTDB']# && Dir.exists?(ENV['BLASTDB'])
+  $FORMATTED_DB_PATH = ENV['BLASTDB']
+  $DB_PATH = File.dirname($FORMATTED_DB_PATH)
+else # otherwise use ROOTPATH + DB
+  $FORMATTED_DB_PATH = File.expand_path(File.join(ROOT_PATH, "DB",'formatted'))
+  $DB_PATH = File.expand_path(File.join(ROOT_PATH, "DB"))
+end
+
+ENV['BLASTDB']=$FORMATTED_DB_PATH
+
+OUTPUT_PATH='output_files'
+
+
+# TODO - COMENTAR todas las clases y metodos para que salga la descripcion cuando hagas rdoc en el terminal
+
+#Checks install requeriments
+require 'install_requirements'
+
+ins = InstallRequirements.new
+if (!ins.check_install_requirements)
+  exit(-1)
+end
+
+require "logger"
+require 'optparse'
+require "global_match"
+require "seqtrim"
+require "params.rb"
+require "plugin.rb"
+require "sequence.rb"
+require "plugin_manager.rb"
+require "make_blast_db"
+require 'hash_stats'
+require 'list_db'
+require 'install_database'
+require 'socket'
+
+
+def show_additional_help
+
+  puts "\n"*3
+  puts "E.g.: processing a fastq sequences file"
+  puts "#{File.basename($0)} -t genomics_454.txt -Q sequences.fastq"
+  puts "\n"*2
+
+  puts "E.g.: processing a fasta file with qual"
+  puts "#{File.basename($0)} -t genomics_454.txt -f sequences.fasta -q sequences.qual"
+
+  templates = Dir.glob(File.join($SEQTRIM_PATH,'templates','*.txt')).map{|t| File.basename(t)}
+
+  puts "\n\n  ========================================================================================================"
+  puts "  Available templates to use with -t option (you can also use your own template):"
+  puts "  Templates at: #{File.join($SEQTRIM_PATH,'templates')}"
+  puts "  ========================================================================================================\n\n"
+
+  templates.map{|e| puts "      "+e}
+
+  puts "\n\n  ========================================================================================================"
+  puts "  Available databases to use in custom template files (you can also use your own database):"
+  puts "  Databases at: #{$DB_PATH}"
+  puts "  ========================================================================================================\n\n"
+
+  ListDb.list_databases($DB_PATH).map{|e| puts "      "+e}
+  #
+  # ip_list = Socket.ip_address_list.select{|e| e.ipv4?}.map{|e| e.ip_address}
+  #
+  # puts ip_list
+
+
+  exit
+
+end
+
+
+# Reads the parameters from console. For this is used ARGV, that is an array.
+options = {}
+
+optparse = OptionParser.new do |opts|
+
+  # Set a banner, displayed at the top
+  # of the help screen.
+  opts.banner = "Usage: #{$0} -t template_file \{-Q fastaQ_file | -f fasta_file -q qual_file\} [options]"
+
+  # Define the options, and what they do
+  #options[:server_ip] = '127.0.0.1'
+  options[:server_ip] = '0.0.0.0'
+  opts.on( '-s', '--server IP', 'Server ip. Can use a partial ip to select the apropriate interface' ) do |server_ip|
+
+    # get list of available ips
+    ip_list = Socket.ip_address_list.select{|e| e.ipv4?}.map{|e| e.ip_address}
+
+    ip=ip_list.select{|ip| ip.index(server_ip)==0}.first
+
+    if !ip
+      ip='0.0.0.0'
+      # $LOG.info("No available ip matching #{server_ip}")
+    end
+    # $ .info("Using ip #{ip}")
+    options[:server_ip] = ip
+  end
+
+  options[:port] = 0 #50000
+  opts.on( '-p', '--port PORT', 'Server port. If set to 0, an arbitrary empty port will be used') do |port|
+    options[:port] = port.to_i
+  end
+
+  options[:workers] = 2
+
+  opts.on( '-w', '--workers COUNT', 'Number of workers, or file containing machine names to launch workers with ssh' ) do |workers|
+    if File.exists?(workers)
+      # use workers file
+      options[:workers] = File.read(workers).split("\n").map{|w| w.chomp}
+    else
+      begin
+        options[:workers] = Integer(workers)
+      rescue
+        STDERR.puts "ERROR:Invalid workers parameter #{options[:workers]}"
+        exit
+      end
+
+    end
+
+  end
+
+
+
+  options[:only_workers] = false
+  opts.on( '-o', '--only_workers', 'Only launch workers' ) do
+    options[:only_workers] = true
+  end
+
+  options[:check_db] = false
+  opts.on( '-c', '--check_databases', 'Check Blast databases and reformat if necessary' ) do
+    options[:check_db] = true
+  end
+
+  options[:use_checkpoint] = false
+  opts.on( '-C', '--use_checkpoint', 'Restore at checkpoint if scbi_mapreduce_checkpoint file is available' ) do
+    options[:use_checkpoint] = true
+  end
+
+  # options[:skip_initial_stats] = false
+  # opts.on( '-k', '--skip_initial_stats', 'Skip initial stats' ) do
+  #   options[:skip_initial_stats] = true
+  # end
+
+
+  options[:install_db] = nil
+  opts.on( '-i', '--install_databases TYPE', 'Install base databases and reformat them if necessary') do |db_type|
+    options[:install_db] = db_type
+  end
+
+  options[:logfile] = STDOUT
+  opts.on( '-l', '--logfile FILE', 'Write log to FILE' ) do |file|
+    options[:logfile] = file
+  end
+
+  options[:fastq] = nil
+  opts.on( '-Q', '--fastq FILE1,FILE2',Array, 'Fastq input file. Use - for <STDIN>' ) do |file|
+    options[:fastq] = file
+    puts "FILES:",file,file.class
+
+  end
+
+  options[:format] = nil
+  opts.on( '-F', '--fastq_quality_format FORMAT', 'Fastq input quality format use sanger or illumina18 for phred+33 based scores. Use illumina15 for phred+64 based scores (default is sanger) file. Use - for <STDIN>' ) do |value|
+    options[:format] = value
+    if !['sanger','illumina15', 'illumina18'].include?(value)
+      STDERR.puts "ERROR: Invalid FASTQ format parameter #{value}"
+      exit
+    end
+  end
+
+
+  options[:fasta] = nil
+  opts.on( '-f', '--fasta FILE', 'Fasta input file' ) do |file|
+    options[:fasta] = file
+  end
+
+  options[:qual] = nil
+  opts.on( '-q', '--qual FILE', 'Qual input file' ) do |file|
+    options[:qual] = file
+  end
+
+  options[:list_db] = nil
+  options[:list_db_name] = 'ALL'
+
+  opts.on( '-L', '--list_db [DB_NAME]', 'List entries IDs in DB_NAME. Use "-L all" to view all available databases' ) do |value|
+    options[:list_db] = true
+    options[:list_db_name] = value if value
+  end
+
+  options[:gen_params] = false
+  opts.on( '-G', '--generate_template', 'Generates a sample template file with default parameters' ) do
+    options[:gen_params] = true
+  end
+
+  options[:template] = nil
+  opts.on( '-t', '--template TEMPLATE_FILE', 'Use TEMPLATE_FILE instead of default parameters' ) do |file|
+    options[:template] = file
+  end
+
+  options[:chunk_size] = 100
+  opts.on( '-g', '--group_size chunk_size', 'Group sequences in chunks of size <chunk_size>' ) do |cs|
+    options[:chunk_size] = cs.to_i
+  end
+
+
+  options[:json] = nil
+  opts.on( '-j', '--json', 'Save results in json file' ) do
+    options[:json] = true
+  end
+
+  options[:skip_output] = false
+  opts.on( '-K', '--no-verbose', 'Change to no verbose mode. Every sequence will not be written to output log' ) do
+    options[:skip_output] = true
+  end
+
+  options[:skip_report] = false
+  opts.on( '-R', '--no-report', 'Do not generate final PDF report (gem scbi_seqtrimnext_report required if you want to generate PDF report).' ) do
+    options[:skip_report] = true
+  end
+
+  options[:write_in_gzip] = false
+  opts.on( '-z', '--gzip', 'Generate output files in gzip format.' ) do
+    options[:write_in_gzip] = true
+  end
+
+  # This displays the help screen, all programs are
+  # assumed to have this option.
+  opts.on_tail( '-h', '--help', 'Display this screen' ) do
+    puts opts
+    show_additional_help
+    exit
+  end
+end
+
+# parse options and remove from ARGV
+optparse.parse!
+
+if options[:list_db] then
+  # List database entries in a database
+  ListDb.new($DB_PATH,options[:list_db_name])
+  exit
+end
+
+if options[:gen_params] then
+  # Generates a sample params file in current directory
+  Params.generate_sample_params
+  exit
+end
+
+#set logger
+# system('rm logs/*')
+FileUtils.mkdir('logs') if !File.exists?('logs')
+
+$LOG = Logger.new(options[:logfile])
+$LOG.datetime_format = "%Y-%m-%d %H:%M:%S"
+#logger.level = Logger::INFO
+
+#DEBUG < INFO < WARN < ERROR < FATAL < UNKNOWN
+
+$LOG.info("SeqTrimNext version #{Seqtrimnext::SEQTRIM_VERSION}")
+
+
+$LOG.info("Using BLASTDB: "+ $FORMATTED_DB_PATH)
+$LOG.info("Using options: "+ options.to_json)
+
+if options[:install_db] then
+  #install databases
+  InstallDatabase.new(options[:install_db],$DB_PATH)
+
+  # reformat databases
+  MakeBlastDb.new($DB_PATH)
+  exit
+end
+
+if !File.exists?($FORMATTED_DB_PATH)
+  STDERR.puts "Database path not found: #{$FORMATTED_DB_PATH}. \n\n\nInstall databases to this path or set your BLASTDB environment variable (eg.: export BLASTDB=new_path)"
+  exit(-1)
+end
+
+
+if options[:check_db] then
+  # check and format blast databases
+  MakeBlastDb.new($DB_PATH)
+  exit
+end
+
+required_options = options[:template] && (options[:fastq] || (options[:fasta]))
+
+# if ((ARGV.count != 2) && (ARGV.count != 3)) # con esto vemos si hay argumentos,
+if (ARGV.count != 0) || (!required_options) # con esto vemos si hay argumentos,
+  puts "You must provide all required options"
+  puts ""
+  puts optparse.help
+  exit(-1)
+end
+
+# check for template
+if (!File.exists?(options[:template]))
+  if File.exists?(File.join($SEQTRIM_PATH,'templates',options[:template]))
+    options[:template] = File.join($SEQTRIM_PATH,'templates',options[:template])
+  else
+    $LOG.info "Params file: #{options[:template]} doesn't exists. \n\nYou can use your own template or specify one from this list:\n============================="
+    puts Dir.glob(File.join($SEQTRIM_PATH,'templates','*.txt')).map{|t| File.basename(t)}
+    exit(-1)
+  end
+end
+$LOG.info "Using init file: #{$SEQTRIMNEXT_INIT}"
+$LOG.info "Using params file: #{options[:template]}"
+
+# check file existence
+
+if options[:fastq]
+  options[:fastq].each do |fastq_file|
+    # fastq file
+    if (!fastq_file.nil? && fastq_file!='-' && !File.exists?(File.expand_path(fastq_file)))
+      $LOG.error "Input file: #{fastq_file} doesn't exists"
+      exit(-1)
+    end
+  end
+end
+
+# fasta file
+if (!options[:fasta].nil? && !File.exists?(options[:fasta]))
+  $LOG.error "Input file: #{options[:fasta]} doesn't exists"
+  exit(-1)
+end
+
+# qual file
+if ((!options[:qual].nil?)&&(!File.exists?(options[:qual])))
+  $LOG.error "Input file: #{options[:qual]} doesn't exists"
+  exit(-1)
+end
+
+s = Seqtrim.new(options)
+
+#generate report
+
+if !options[:skip_report] && system("which generate_report.rb > /dev/null ")
+  cmd="generate_report.rb output_files 2> report_generation_errors.log"
+  $LOG.info "Generating report #{cmd}"
+  `#{cmd}`
+else
+  skip_text='.'
+
+  if options[:skip_report]
+    skip_text=' and remove the -R option from the command line.'
+  end
+
+  $LOG.info "If you want a detailed report in PDF format, be sure you have installed the optional seqtrimnext_report gem (gem install seqtrimnext_report)#{skip_text}"
+end

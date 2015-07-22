@@ -1,0 +1,31 @@
+# ==============================================================
+# General parameters for genomics - Illumina/SOLiD (short reads)
+# ==============================================================
+
+# Help: <br/>This template is used to preprocess short reads for genomics including low complexity removal<br/>
+# Help: <br/><b>Plugin list and aplication order:</b><br/>
+
+# Help: <ul>
+# Help: <li>PluginIndeterminations: retaining the longest sequence fragment without indeterminations (N)</li>
+# Help: <li>PluginAbAdapters: trimming the Illumina adapters</li>
+# Help: <li>PluginUserContaminants: discarding sequences matching any entry in the user contaminant database saving them in a separate file</li>
+
+# Help: <li>PluginContaminants: trimming the contaminant fragments found in the contaminant database. When contamination is prevalent, sequences are rejected. </li>
+# Help: <li>PluginVectors: trimming any cloning vector found in SeqTrimNEXT database. </li>
+# Help: <li>PluginLowQuality: trimming low quality regions from sequences. </li>
+# Help: <li>PluginLowComplexity: sequences with low complexity are stored on a separate file. </li>
+# Help: </ul>
+
+plugin_list = PluginIndeterminations,PluginAbAdapters,PluginUserContaminants,PluginContaminants,PluginVectors,PluginLowQuality,PluginLowComplexity
+
+generate_initial_stats = false
+
+# Minimum insert size for every trimmed sequence
+
+min_insert_size_trimmed = 30
+
+
+# do not remove cloned sequences
+remove_clonality=false
+
+adapters_ab_db="adapters_illumina.fasta"

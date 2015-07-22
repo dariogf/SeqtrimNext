@@ -1,0 +1,24 @@
+# ======================================
+# General parameters to extract Amplicons
+# ======================================
+
+# Help: <br/>This template is used to remove only bad quality regions<br/>
+
+# Help: <br/><b>Plugin list and aplication order:</b><br/>
+
+# Help: <ul>
+# Help: <li>PluginLowQuality: trimming low quality regions from sequences. </li>
+# Help: </ul>
+
+plugin_list = PluginLowQuality
+
+# do not remove cloned sequences
+remove_clonality=false
+
+# remove amplicons containing less or equal number of sequences indicated
+
+generate_initial_stats = false
+
+# Minimum insert size for every trimmed sequence
+
+min_insert_size_trimmed = 30

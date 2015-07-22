@@ -1,0 +1,30 @@
+# ======================================
+# General parameters to extract Amplicons
+# ======================================
+
+# Help: <br/>This template is used to get Amplicons<br/>
+
+# Help: <br/><b>Plugin list and aplication order:</b><br/>
+
+# Help: <ul>
+# Help: <li>PluginLowHighSize: rejecting too short or too long sequences</li>
+# Help: <li>PluginKey: trimming Roche 454 sequencing keys (typically 4 first nucleotides)</li>
+# Help: <li>PluginMids: trimming Roche 454 MIDs and keys</li>
+# Help: <li>PluginIndeterminations: retaining the longest sequence fragment without indeterminations (N)</li>
+# Help: <li>PluginAbAdapters: trimming the Roche 454 AB adapters</li>
+# Help: <li>PluginAmplicons: getting sequences contained between two primers. Sequences with less than two primers are rejected. </li>
+# Help: <li>PluginLowQuality: trimming low quality regions from sequences. </li>
+# Help: </ul>
+
+plugin_list = PluginLowHighSize,PluginKey,PluginMids,PluginIndeterminations,PluginAbAdapters,PluginAmplicons,PluginLowQuality
+
+# do not remove cloned sequences
+remove_clonality=false
+
+# sequences containing with diferent keys (barcodes) are saved to separate folders
+use_independent_folder_for_each_key=true
+
+# remove amplicons containing less or equal number of sequences indicated
+
+minimal_repetitions_for_amplicons=1
+
