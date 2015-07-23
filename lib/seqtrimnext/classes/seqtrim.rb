@@ -262,7 +262,7 @@ class Seqtrim
     end
 
     # Extract global stats
-    if params.get_param('generate_initial_stats')=='true'
+    if params.get_param('generate_initial_stats').to_s=='true'
       $LOG.info "Calculatings stats"
       ExtractStats.new(sequence_readers,params)
     else
@@ -273,7 +273,7 @@ class Seqtrim
     # save used params to file
     params.save_file(File.join(OUTPUT_PATH,'used_params.txt'))
     
-    piro_on = (params.get_param('next_generation_sequences')=='true')
+    piro_on = (params.get_param('next_generation_sequences').to_s=='true')
 
       params.load_mids(params.get_param('mids_db'))
       params.load_ab_adapters(params.get_param('adapters_ab_db'))
@@ -281,7 +281,7 @@ class Seqtrim
       params.load_linkers(params.get_param('linkers_db'))
       
       #execute cd-hit
-      if params.get_param('remove_clonality')=='true'
+      if params.get_param('remove_clonality').to_s=='true'
         cmd=get_custom_cdhit(cd_hit_input_file,params)
         if cmd.empty?
           cmd=get_cd_hit_cmd(cd_hit_input_file,workers,$SEQTRIMNEXT_INIT)

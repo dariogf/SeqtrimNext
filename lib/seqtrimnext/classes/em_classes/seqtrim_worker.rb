@@ -19,7 +19,7 @@
 #
 # $: << File.expand_path(ROOT_PATH)
 
-$: << File.expand_path('~/progs/ruby/gems/seqtrimnext/lib/')
+# $: << File.expand_path('~/progs/ruby/gems/seqtrimnext/lib/')
 # $: << File.expand_path('~/progs/ruby/gems/scbi_mapreduce/lib')
 
 require 'seqtrimnext'

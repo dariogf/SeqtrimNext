@@ -100,7 +100,7 @@ class PluginIndeterminations < Plugin
 		      a.right_action=true
 		      actions.push a
 		  
-          if @params.get_param('middle_indetermination_rejects')=='true'
+          if @params.get_param('middle_indetermination_rejects').to_s=='true'
 		        seq.seq_rejected=true 
             seq.seq_rejected_by_message='Indeterminations in middle of sequence'
           end

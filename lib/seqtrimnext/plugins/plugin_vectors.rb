@@ -101,7 +101,7 @@ class PluginVectors < Plugin
       # puts " near #{near_to_extrem(v,seq,min_vector_size)} #{vector_size}>=#{min_vector_size}"
       #c.q_end+seq.insert_start+max_to_end)>=seq.seq_fasta_orig.size-1)  #if ab adapter is very near to the end of original sequence  
       
-      piro_on=@params.get_param('next_generation_sequences')
+      piro_on=@params.get_param('next_generation_sequences').to_s
       
       if (((piro_on=='true')  && (!seq.range_inside_action_type?(v.q_beg,v.q_end,ActionLinker)) && (!seq.range_inside_action_type?(v.q_beg,v.q_end,ActionMultipleLinker)))    ||   # if vectors DB not is contained inside detected linkers
            (piro_on=='false'))
@@ -110,7 +110,7 @@ class PluginVectors < Plugin
          if !near_to_extrem(v,seq,min_vector_size)
        		type = 'ActionUnexpectedVector'
 
-          if @params.get_param('middle_vector_rejects')=='true'
+          if @params.get_param('middle_vector_rejects').to_s=='true'
     			  seq.seq_rejected=true
   				  seq.seq_rejected_by_message='unexpected vector'
           end

@@ -154,7 +154,7 @@ class PluginContaminants < Plugin
 
 
 
-    if ((not actions.empty? ) && (reject=='true'))
+    if ((not actions.empty? ) && (reject.to_s=='true'))
       #reject sequence
       # puts "SEQ_REJECTED= TRUE >>> "
       seq.seq_rejected=true

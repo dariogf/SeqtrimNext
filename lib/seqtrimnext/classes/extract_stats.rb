@@ -196,7 +196,7 @@ class ExtractStats
 
     # sequence min size, is taken directly from params file
     # max sequence limit is calculated here 
-    if (@sequence_lengths_stats.variance_coefficient<=10) or (@params.get_param('accept_very_long_sequences')=='true')
+    if (@sequence_lengths_stats.variance_coefficient<=10) or (@params.get_param('accept_very_long_sequences').to_s=='true')
 
       # high size limit is calculated with stats
       @params.set_param('max_sequence_size_raw',(@sequence_lengths_stats.max+10).to_i)
