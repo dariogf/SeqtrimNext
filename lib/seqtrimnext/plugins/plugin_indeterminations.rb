@@ -148,6 +148,23 @@ class PluginIndeterminations < Plugin
      
      actions=[]
      
+    # find simple indeterminations at the beginning of sequence
+      match=seq.seq_fasta.match(/^[nN]+/)
+     
+     if !match.nil?
+       found=match[0].length
+       
+       a = seq.new_action(0,found-1,'ActionIndetermination')
+       actions.push a       
+
+       #Add actions  
+       seq.add_actions(actions)
+       actions=[]
+       add_stats('indetermination_size',found)
+  
+     end
+     
+
      # find simple indeterminations at end of sequence
 			match=seq.seq_fasta.match(/[nN]+$/)
      

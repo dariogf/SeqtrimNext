@@ -20,9 +20,15 @@ class Plugin
     @stats ={}
     
     if can_execute?
+      t1=Time.now
       execute(seq)
+      t2=Time.now
     end
     
+    
+    @stats['execution_time']={}
+
+    @stats['execution_time']['total_seconds']=t2-t1
   end
 
   def can_execute?
