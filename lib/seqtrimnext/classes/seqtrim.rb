@@ -362,6 +362,7 @@ class Seqtrim
         server.retry_stuck_jobs=true
 				server.start_server
         
+        
         # close sequence reader
 				sequence_readers.each do |file|
 				  file.close

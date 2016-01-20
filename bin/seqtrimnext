@@ -362,6 +362,7 @@ $LOG.datetime_format = "%Y-%m-%d %H:%M:%S"
 #DEBUG < INFO < WARN < ERROR < FATAL < UNKNOWN
 
 $LOG.info("SeqTrimNext version #{Seqtrimnext::SEQTRIM_VERSION}")
+$LOG.info("STN command: #{$0}")
 
 
 $LOG.info("Using BLASTDB: "+ $FORMATTED_DB_PATH)

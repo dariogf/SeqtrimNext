@@ -82,6 +82,7 @@ class SeqtrimWorker <  ScbiMapreduce::Worker
 
     # $WORKER_LOG.level = Logger::ERROR
     $WORKER_LOG.level = Logger::WARN
+    #$WORKER_LOG.level = Logger::INFO
     $WORKER_LOG.info "Loading actions"
 
     @action_manager = ActionManager.new

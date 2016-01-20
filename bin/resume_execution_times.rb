@@ -27,29 +27,40 @@ ARGV.each do |file_path|
 	stats=JSON::parse(File.read(file_path))
 
 	res={}
+	
+	total=0
+		
 
 	begin
 		stats.keys.each do |k|
 			if stats[k]['execution_time']
 				res[k]=stats[k]['execution_time']['total_seconds']
+				total+=res[k]
 			end
 		end
+
+		res["TOTAL_plugins"]=total
 		
 	rescue Excepcion => e
 
 	   puts "Error reading #{file_path}"
 	end
 
+	if stats['scbi_mapreduce']
+		res['TOTAL_workers']=stats['scbi_mapreduce']['connected_workers']
+		res['TOTAL_read']=stats['scbi_mapreduce']['total_read_time']
+		res['TOTAL_write']=stats['scbi_mapreduce']['total_write_time']
+		res['TOTAL_manager_idle']=stats['scbi_mapreduce']['total_manager_idle_time']
+		res['TOTAL_execution']=stats['scbi_mapreduce']['total_seconds']
+	end
+
 	if puts_json
 		puts JSON::pretty_generate(res)
 	else
-		total=0
 		res.keys.sort.each do |k|
 			puts "#{k}\t#{res[k]}"
-			total+=res[k]
 		end
-		puts "-"*20
-		puts "TOTAL (plugins):\t#{total}"
 	end
+
 end
 

@@ -87,13 +87,6 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
 
   def self.end_work_manager
 
-    puts "FULL STATS:\n" +JSON.pretty_generate(@@full_stats)
-
-    # create stats file
-    f = File.open(STATS_PATH,'w')
-    f.puts JSON.pretty_generate(@@full_stats)
-    f.close
-
     # if initial files doesn't exists, create it
     if !File.exists?(File.join(OUTPUT_PATH,'initial_stats.json'))
       File.open(File.join(OUTPUT_PATH,'initial_stats.json'),'w') do |f|
@@ -102,10 +95,10 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
     end
 
     # load stats
-    r=File.read(STATS_PATH)
-    stats=JSON::parse(r)
+    #r=File.read(STATS_PATH)
+    #stats=JSON::parse(r)
 
-
+    stats=@@full_stats
 
     # make graphs
     gs=GraphStats.new(stats)
@@ -120,11 +113,18 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
       file.close
     end
 
-    if File.exists?('scbi_drb_checkpoint')
-      File.delete('scbi_drb_checkpoint')
-    end
   end
 
+  def self.work_manager_finished
+    @@full_stats['scbi_mapreduce']=@@stats
+
+    puts "FULL STATS:\n" +JSON.pretty_generate(@@full_stats)
+
+    # create stats file
+    f = File.open(STATS_PATH,'w')
+    f.puts JSON.pretty_generate(@@full_stats)
+    f.close
+  end
 
   def error_received(worker_error, obj)
     @@errors_file.puts "Error while processing object #{obj.inspect}\n" + worker_error.original_exception.message + ":\n" +worker_error.original_exception.backtrace.join("\n")

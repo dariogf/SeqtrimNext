@@ -35,6 +35,9 @@ class Plugin
     return true
   end
 
+  def exec_seq(seq,blast_query)
+  end
+
   #Begins the plugin's execution whit the sequence "seq"
   def execute(seqs)
     blasts=do_blasts(seqs)
