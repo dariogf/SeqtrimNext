@@ -1,4 +1,4 @@
 module Seqtrimnext
-  VERSION = "2.0.62"
+  VERSION = "2.0.63"
   SEQTRIM_VERSION = VERSION
 end

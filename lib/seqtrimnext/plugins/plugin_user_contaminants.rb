@@ -55,15 +55,23 @@ class PluginUserContaminants < Plugin
     end
 
 
-    blast_table_results = blast.do_blast(fastas,:xml)
+    #blast_table_results = blast.do_blast(fastas,:xml)
+    t1=Time.now
+    blast_table_results = blast.do_blast(fastas,:xml,false)
+    add_plugin_stats('execution_time','blast',Time.now-t1)
+
+    t1=Time.now
+    blast_table_results = BlastStreamxmlResult.new(blast_table_results)
+    add_plugin_stats('execution_time','parse',Time.now-t1)
+
 
     return blast_table_results
   end
 
 
   def exec_seq(seq,blast_query)
-    if blast_query.query_id != seq.seq_name
-      # raise "Blast and seq names does not match, blast:#{blast_query.query_id} sn:#{seq.seq_name}"
+    if blast_query.query_def != seq.seq_name
+      raise "Blast and seq names does not match, blast:#{blast_query.query_def} sn:#{seq.seq_name}"
     end
 
     $LOG.debug "[#{self.class.to_s}, seq: #{seq.seq_name}]: looking for classify into the sequence"

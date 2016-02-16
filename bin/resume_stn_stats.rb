@@ -10,9 +10,10 @@ end
 # print header  
 if ARGV[0]=='-t'
 	heads=['sample_name','input_count','sequence_count_paired','sequence_count_single','rejected','rejected_percent']
-	puts heads.join("\t")   
+	puts heads.join("\t")
 	ARGV.shift
 end
+
 
 ARGV.each do |file_path|
 	sample_name = File.basename(File.expand_path(File.join(file_path,'..','..')))

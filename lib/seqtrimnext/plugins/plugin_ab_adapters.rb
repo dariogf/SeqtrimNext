@@ -18,6 +18,9 @@ class PluginAbAdapters < Plugin
     
     # find MIDS  with less results than max_target_seqs value 
     blast=BatchBlast.new("-db #{@params.get_param('adapters_ab_db')}",'blastn'," -task blastn-short -perc_identity #{@params.get_param('blast_percent_ab')} -word_size #{MIN_ADAPTER_SIZE}")  
+
+    # con culling limit hay situaciones en las que un hit largo con 1 mismatch es ignorado porque hay otro más corto que no tiene ningun error, no es aceptable.
+    #blast=BatchBlast.new("-db #{@params.get_param('adapters_ab_db')}",'blastn'," -task blastn-short -perc_identity #{@params.get_param('blast_percent_ab')} -word_size #{MIN_ADAPTER_SIZE} -culling_limit=1")  
     $LOG.debug('BLAST:'+blast.get_blast_cmd)
 
     fastas=[]
@@ -29,7 +32,32 @@ class PluginAbAdapters < Plugin
     
     # fastas=fastas.join("\n")
     
-    blast_table_results = blast.do_blast(fastas)
+    #blast_table_results = blast.do_blast(fastas)
+    #blast_table_results = BlastTableResult.new(blast_table_results)
+
+    
+    t1=Time.now
+    blast_table_results = blast.do_blast(fastas,:table,false)
+    add_plugin_stats('execution_time','blast',Time.now-t1)
+
+    
+    #f=File.new("/tmp/salida_#{fastas.first.gsub('>','').gsub('/','_')}.blast",'w+')
+    #f.puts blast.get_blast_cmd
+    #f.puts blast_table_results
+    #f.close
+
+    t1=Time.now
+    blast_table_results = BlastTableResult.new(blast_table_results)
+    add_plugin_stats('execution_time','parse',Time.now-t1)
+
+
+    # t1=Time.now
+    # blast_table_results = blast.do_blast(fastas,:xml,false)
+    # add_plugin_stats('execution_time','blast',Time.now-t1)
+
+    # t1=Time.now
+    # blast_table_results = BlastStreamxmlResult.new(blast_table_results)
+    # add_plugin_stats('execution_time','parse',Time.now-t1)
     
     # puts blast_table_results.inspect
    

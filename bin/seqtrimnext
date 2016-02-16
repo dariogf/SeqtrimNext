@@ -301,7 +301,7 @@ optparse = OptionParser.new do |opts|
     options[:template] = file
   end
 
-  options[:chunk_size] = 100
+  options[:chunk_size] = 5000
   opts.on( '-g', '--group_size chunk_size', 'Group sequences in chunks of size <chunk_size>' ) do |cs|
     options[:chunk_size] = cs.to_i
   end

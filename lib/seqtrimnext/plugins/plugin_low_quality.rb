@@ -170,9 +170,10 @@ class PluginLowQuality < Plugin
 		default_value = 20
 		params.check_param(errors,'min_quality','Integer',default_value,comment)
 		
-	  comment='Quality window for scanning low quality segments'
-		default_value = 15
-		params.check_param(errors,'window_width','Integer',default_value,comment)
+    
+	  #comment='Quality window for scanning low quality segments'
+		#default_value = 15
+		#params.check_param(errors,'window_width','Integer',default_value,comment)
    
     
 	  comment='Minimum length of a bad quality segment inside the sequence'

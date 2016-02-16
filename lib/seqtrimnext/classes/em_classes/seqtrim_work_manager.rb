@@ -129,10 +129,14 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
   def error_received(worker_error, obj)
     @@errors_file.puts "Error while processing object #{obj.inspect}\n" + worker_error.original_exception.message + ":\n" +worker_error.original_exception.backtrace.join("\n")
     @@errors_file.puts "="*60
+
+    SeqtrimWorkManager.controlled_exit
+
   end
 
   def too_many_errors_received
     $LOG.error "Too many errors: #{@@error_count} errors on #{@@count} executed sequences, exiting before finishing"
+
   end
 
   def worker_initial_config

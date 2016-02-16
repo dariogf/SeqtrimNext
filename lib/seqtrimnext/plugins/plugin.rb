@@ -23,12 +23,15 @@ class Plugin
       t1=Time.now
       execute(seq)
       t2=Time.now
+
+      add_plugin_stats('execution_time','total_seconds',t2-t1)
     end
     
-    
-    @stats['execution_time']={}
+  end
 
-    @stats['execution_time']['total_seconds']=t2-t1
+  def add_plugin_stats(cat,item,elapsed_time)
+      @stats[cat]={} if @stats[cat].nil?
+      @stats[cat][item]=elapsed_time
   end
 
   def can_execute?
@@ -40,7 +43,9 @@ class Plugin
 
   #Begins the plugin's execution whit the sequence "seq"
   def execute(seqs)
+    t1=Time.now
     blasts=do_blasts(seqs)
+    
 
     if !blasts.empty?
       
@@ -49,18 +54,24 @@ class Plugin
       else
         queries = blasts.querys
       end
-      
+
+      add_plugin_stats('execution_time','blast_and_parse',Time.now-t1)
+
+      t1=Time.now
       seqs.each_with_index do |s,i|
         exec_seq(s,queries[i])
       end
 
     else # there is no blast
 
+      t1=Time.now
       seqs.each do |s|
         exec_seq(s,nil)
       end
-
     end
+
+    add_plugin_stats('execution_time','exec_seq',Time.now-t1)
+
   end
 
   def do_blasts(seqs)
