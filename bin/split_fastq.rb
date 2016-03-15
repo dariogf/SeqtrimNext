@@ -14,7 +14,7 @@ output_name = ARGV.shift
 split_by = ARGV.shift.to_i
 
 gz_arg=ARGV.shift
-gz=false
+gz=''
 
 if !gz_arg.nil? and gz_arg.index('-gz')
 	gz='.gz'

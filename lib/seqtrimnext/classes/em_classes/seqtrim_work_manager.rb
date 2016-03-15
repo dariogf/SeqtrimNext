@@ -17,6 +17,7 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
     @@full_stats={}
     @@params= params
     @@exit = false
+    @@exit_status=0
 
     @@ongoing_stats={}
     @@ongoing_stats[:sequence_count] = 0
@@ -85,6 +86,10 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
 
   end
 
+  def self.exit_status
+    return @@exit_status
+  end
+
   def self.end_work_manager
 
     # if initial files doesn't exists, create it
@@ -115,6 +120,14 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
 
   end
 
+  def self.global_error_received(error_exception)
+    $LOG.error "Global error:\n" + error_exception.message + ":\n" +error_exception.backtrace.join("\n")
+    @@errors_file.puts "Global error:\n" + error_exception.message + ":\n" +error_exception.backtrace.join("\n")
+    @@errors_file.puts "="*60
+    @@exit_status=-1
+    SeqtrimWorkManager.controlled_exit
+  end
+
   def self.work_manager_finished
     @@full_stats['scbi_mapreduce']=@@stats
 
@@ -129,14 +142,14 @@ class SeqtrimWorkManager < ScbiMapreduce::WorkManager
   def error_received(worker_error, obj)
     @@errors_file.puts "Error while processing object #{obj.inspect}\n" + worker_error.original_exception.message + ":\n" +worker_error.original_exception.backtrace.join("\n")
     @@errors_file.puts "="*60
-
+    @@exit_status=-1
     SeqtrimWorkManager.controlled_exit
 
   end
 
   def too_many_errors_received
     $LOG.error "Too many errors: #{@@error_count} errors on #{@@count} executed sequences, exiting before finishing"
-
+    @@exit_status=-1
   end
 
   def worker_initial_config

@@ -216,7 +216,7 @@ optparse = OptionParser.new do |opts|
         options[:workers] = Integer(workers)
       rescue
         STDERR.puts "ERROR:Invalid workers parameter #{options[:workers]}"
-        exit
+        exit -1
       end
 
     end
@@ -268,7 +268,7 @@ optparse = OptionParser.new do |opts|
     options[:format] = value
     if !['sanger','illumina15', 'illumina18'].include?(value)
       STDERR.puts "ERROR: Invalid FASTQ format parameter #{value}"
-      exit
+      exit -1
     end
   end
 
@@ -332,7 +332,7 @@ optparse = OptionParser.new do |opts|
   opts.on_tail( '-h', '--help', 'Display this screen' ) do
     puts opts
     show_additional_help
-    exit
+    exit -1
   end
 end
 
@@ -342,13 +342,13 @@ optparse.parse!
 if options[:list_db] then
   # List database entries in a database
   ListDb.new($DB_PATH,options[:list_db_name])
-  exit
+  exit -1
 end
 
 if options[:gen_params] then
   # Generates a sample params file in current directory
   Params.generate_sample_params
-  exit
+  exit -1
 end
 
 #set logger
@@ -453,3 +453,5 @@ else
 
   $LOG.info "If you want a detailed report in PDF format, be sure you have installed the optional seqtrimnext_report gem (gem install seqtrimnext_report)#{skip_text}"
 end
+
+exit(Seqtrim.exit_status)

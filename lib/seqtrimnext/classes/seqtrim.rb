@@ -15,6 +15,12 @@ require 'action_manager'
 
 class Seqtrim
   
+
+
+  def self.exit_status
+    return SeqtrimWorkManager.exit_status
+  end
+
   # First of all, reads the file's parameters, where are the values of all parameters and the 'plugin_list'  that specifies the order of execution from the plugins. 
   #
   # Secondly, loads the plugins in a folder .
@@ -24,7 +30,6 @@ class Seqtrim
   # After that, creates a thread's pool of a determinate number of workers, e.g. 10 threads,
   # reads the sequences from files 'fasta' , until now without qualities,
   # and executes the plugins over the sequences in the pool of threads
-  
 
   def get_custom_cdhit(cd_hit_input_file,params)
     cmd=''
@@ -166,7 +171,7 @@ class Seqtrim
     if File.exists?(ScbiMapreduce::CHECKPOINT_FILE)
       if !options[:use_checkpoint]
         STDERR.puts "ERROR: A checkpoint file exists, either delete it or provide -C flag to use it"
-        exit
+        exit(-1)
       end
     end
     
@@ -230,7 +235,7 @@ class Seqtrim
 
     $LOG.info "Checking global params"
     if !check_global_params(params)
-    		exit
+    		exit(-1)
     end
                                    
     # Load actions
@@ -253,8 +258,7 @@ class Seqtrim
 
 	    	# save used params to file
         params.save_file('used_params.txt')
-
-      exit
+        exit(-1)
     end
     
     if !Dir.exists?(OUTPUT_PATH)
@@ -297,7 +301,7 @@ class Seqtrim
 	        params.load_repeated_seqs('clusters.fasta.clstr')
         else
           $LOG.error("Exiting due to not found clusters.fasta.clstr. Maybe cd-hit failed. Check cd-hit.out")
-          exit
+          exit(-1)
         end
 	    end
       
@@ -367,7 +371,12 @@ class Seqtrim
 				sequence_readers.each do |file|
 				  file.close
 				end
-				
+
+        if SeqtrimWorkManager.exit_status>=0
+				  $LOG.info "Exit status: #{SeqtrimWorkManager.exit_status}"
+        else
+          $LOG.error "Exit status: #{SeqtrimWorkManager.exit_status}"
+        end
 				$LOG.info 'Closing server'
 			end
 			
