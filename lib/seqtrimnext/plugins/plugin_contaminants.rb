@@ -26,9 +26,16 @@ class PluginContaminants < Plugin
     # TODO - Culling limit = 2 porque el blast falla con este comando cuando se le pasa cl=1 y dust=no
     # y una secuencia de baja complejidad como entrada
 
-    blast = BatchBlast.new("-db #{@params.get_param('contaminants_db')}",'blastn'," -task blastn -evalue #{@params.get_param('blast_evalue_contaminants')} -perc_identity #{@params.get_param('blast_percent_contaminants')} -culling_limit 1")  #get contaminants -max_target_seqs #{MAX_TARGETS_SEQS}
+    task_template=@params.get_param('blast_task_template_contaminants')
+    extra_params=@params.get_param('blast_extra_params_contaminants')
 
-    $LOG.debug('BLAST:'+blast.get_blast_cmd(:xml))
+    extra_params=extra_params.gsub(/^\"|\"?$/, '')
+
+    #blast = BatchBlast.new("-db #{@params.get_param('contaminants_db')}",'blastn'," -task blastn  -evalue #{@params.get_param('blast_evalue_contaminants')} -perc_identity #{@params.get_param('blast_percent_contaminants')} -culling_limit 1")  #get contaminants -max_target_seqs #{MAX_TARGETS_SEQS}
+
+    blast = BatchBlast.new("-db #{@params.get_param('contaminants_db')}",'blastn'," -task #{task_template} #{extra_params} -evalue #{@params.get_param('blast_evalue_contaminants')} -perc_identity #{@params.get_param('blast_percent_contaminants')} -culling_limit 1")  #get contaminants -max_target_seqs #{MAX_TARGETS_SEQS}
+
+    $LOG.info('BLAST:'+blast.get_blast_cmd(:xml))
 
     fastas=[]
 
@@ -75,6 +82,7 @@ class PluginContaminants < Plugin
 
     $LOG.debug "[#{self.class.to_s}, seq: #{seq.seq_name}]: looking for contaminants into the sequence"
 
+    #add_plugin_stats('hsp_count',seq.seq_name,blast_query.hits.count) 
 
     #blast = BatchBlast.new('-db DB/formatted/contaminants.fasta','blastn',' -task blastn -evalue 1e-10 -perc_identity 95')  #get contaminants
     # blast = BatchBlast.new("-db #{@params.get_param('contaminants_db')}",'blastn'," -task blastn-short -evalue #{@params.get_param('blast_evalue_contaminants')} -perc_identity #{@params.get_param('blast_percent_contaminants')} -culling_limit 1")  #get contaminants -max_target_seqs #{MAX_TARGETS_SEQS}
@@ -206,6 +214,14 @@ class PluginContaminants < Plugin
     comment='Path for contaminants database'
     default_value = File.join($FORMATTED_DB_PATH,'contaminants.fasta')
     params.check_param(errors,'contaminants_db','DB',default_value,comment)
+
+    comment='Blast task template for contaminations'
+    default_value = 'blastn'
+    params.check_param(errors,'blast_task_template_contaminants','String',default_value,comment)
+
+    comment='Blast extra params for contaminations'
+    default_value = ''
+    params.check_param(errors,'blast_extra_params_contaminants','String',default_value,comment)
 
 
     return errors

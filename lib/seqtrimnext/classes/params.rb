@@ -33,8 +33,18 @@ class Params
         if !line.empty?
           if !(line =~ /^\s*#/)   # if line is not a comment
             # extract the parameter's name in params[0] and the parameter's value in params[1]
-            params = line.split(/\s*=\s*/)
+            #params = line.split(/\s*=\s*/)
 
+            # store in the hash the pair key/value, in our case will be name/numeric-value ,
+            # that are save in params[0] and params[1],  respectively
+            #if (!params[0].nil?) && (!params[1].nil?)
+            #  set_param(params[0].strip,params[1].strip,comments)
+            #  comments=[]
+            #end
+
+            line =~ /^\s*([^=]*)\s*=\s*(.*)\s*$/
+            params=[$1,$2]
+              
             # store in the hash the pair key/value, in our case will be name/numeric-value ,
             # that are save in params[0] and params[1],  respectively
             if (!params[0].nil?) && (!params[1].nil?)
@@ -42,7 +52,9 @@ class Params
               comments=[]
             end
 
-            #$LOG.debug "read: #{params[1]}"
+
+            $LOG.debug "read: #{params[0]}=#{params[1]}"
+            
           else
             comments << line.gsub(/^\s*#/,'')
           end # end if comentario
