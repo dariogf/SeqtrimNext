@@ -35,7 +35,7 @@ class PluginContaminants < Plugin
 
     blast = BatchBlast.new("-db #{@params.get_param('contaminants_db')}",'blastn'," -task #{task_template} #{extra_params} -evalue #{@params.get_param('blast_evalue_contaminants')} -perc_identity #{@params.get_param('blast_percent_contaminants')} -culling_limit 1")  #get contaminants -max_target_seqs #{MAX_TARGETS_SEQS}
 
-    $LOG.info('BLAST:'+blast.get_blast_cmd(:xml))
+    $LOG.debug('BLAST:'+blast.get_blast_cmd(:xml))
 
     fastas=[]
 
