@@ -27,7 +27,7 @@ class PluginAdapters < Plugin
     
     # fastas=fastas.join("\n")
     
-    blast_table_results = blast.do_blast(fastas,:xml)
+    blast_table_results = blast.do_blast(fastas,:table)
     
     # puts blast_table_results.inspect
    

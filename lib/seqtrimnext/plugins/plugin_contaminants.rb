@@ -23,6 +23,9 @@ class PluginContaminants < Plugin
     # find MIDS  with less results than max_target_seqs value
     # blast = BatchBlast.new("-db #{@params.get_param('contaminants_db')}",'blastn'," -task blastn-short -evalue #{@params.get_param('blast_evalue_contaminants')} -perc_identity #{@params.get_param('blast_percent_contaminants')} -culling_limit 1")  #get contaminants -max_target_seqs #{MAX_TARGETS_SEQS}
 
+    # This message is due to short sequences
+    #Warning: Could not calculate ungapped Karlin-Altschul parameters due to an invalid query sequence or its translation. Please verify the query sequence(s) and/or filtering options 
+
     # TODO - Culling limit = 2 porque el blast falla con este comando cuando se le pasa cl=1 y dust=no
     # y una secuencia de baja complejidad como entrada
 
@@ -35,7 +38,7 @@ class PluginContaminants < Plugin
 
     blast = BatchBlast.new("-db #{@params.get_param('contaminants_db')}",'blastn'," -task #{task_template} #{extra_params} -evalue #{@params.get_param('blast_evalue_contaminants')} -perc_identity #{@params.get_param('blast_percent_contaminants')} -culling_limit 1")  #get contaminants -max_target_seqs #{MAX_TARGETS_SEQS}
 
-    $LOG.debug('BLAST:'+blast.get_blast_cmd(:xml))
+    $LOG.debug('BLAST:'+blast.get_blast_cmd(:table))
 
     fastas=[]
 
@@ -52,11 +55,13 @@ class PluginContaminants < Plugin
 
     #blast_table_results = blast.do_blast(fastas,:xml)
     t1=Time.now
-    blast_table_results = blast.do_blast(fastas,:xml,false)
+    #blast_table_results = blast.do_blast(fastas,:xml,false)
+    blast_table_results = blast.do_blast(fastas,:table,false)
     add_plugin_stats('execution_time','blast',Time.now-t1)
 
     t1=Time.now
-    blast_table_results = BlastStreamxmlResult.new(blast_table_results)
+    #blast_table_results = BlastStreamxmlResult.new(blast_table_results)
+    blast_table_results = BlastTableResult.new(blast_table_results)
     add_plugin_stats('execution_time','parse',Time.now-t1)
 
     # $LOG.info(blast_table_results.inspect)
@@ -76,8 +81,9 @@ class PluginContaminants < Plugin
       return
     end
     
-    if blast_query.query_def != seq.seq_name
-      raise "Blast and seq names does not match, blast:#{blast_query.query_def} sn:#{seq.seq_name}"
+    #if blast_query.query_def != seq.seq_name
+    if blast_query.query_id != seq.seq_name
+      raise "Blast and seq names does not match, blast:#{blast_query.query_id} sn:#{seq.seq_name}"
     end
 
     $LOG.debug "[#{self.class.to_s}, seq: #{seq.seq_name}]: looking for contaminants into the sequence"

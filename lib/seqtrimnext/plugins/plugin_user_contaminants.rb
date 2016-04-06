@@ -43,9 +43,14 @@ class PluginUserContaminants < Plugin
     # TODO - Culling limit = 2 porque el blast falla con este comando cuando se le pasa cl=1 y dust=no
     # y una secuencia de baja complejidad como entrada
 
-    blast = BatchBlast.new("-db #{@params.get_param('user_contaminant_db')}",'blastn'," -task blastn -evalue #{@params.get_param('blast_evalue_user_contaminant')} -perc_identity #{@params.get_param('blast_percent_user_contaminant')} -culling_limit 1")  #get classify -max_target_seqs #{MAX_TARGETS_SEQS}
+    task_template=@params.get_param('blast_task_template_user_contaminants')
+    extra_params=@params.get_param('blast_extra_params_user_contaminants')
 
-    $LOG.debug('BLAST:'+blast.get_blast_cmd(:xml))
+    extra_params=extra_params.gsub(/^\"|\"?$/, '')
+
+    blast = BatchBlast.new("-db #{@params.get_param('user_contaminant_db')}",'blastn'," -task #{task_template} #{extra_params} -evalue #{@params.get_param('blast_evalue_user_contaminant')} -perc_identity #{@params.get_param('blast_percent_user_contaminant')} -culling_limit 1")  #get classify -max_target_seqs #{MAX_TARGETS_SEQS}
+
+    $LOG.debug('BLAST:'+blast.get_blast_cmd(:table))
 
     fastas=[]
 
@@ -57,11 +62,12 @@ class PluginUserContaminants < Plugin
 
     #blast_table_results = blast.do_blast(fastas,:xml)
     t1=Time.now
-    blast_table_results = blast.do_blast(fastas,:xml,false)
+    blast_table_results = blast.do_blast(fastas,:table,false)
     add_plugin_stats('execution_time','blast',Time.now-t1)
 
     t1=Time.now
-    blast_table_results = BlastStreamxmlResult.new(blast_table_results)
+    #blast_table_results = BlastStreamxmlResult.new(blast_table_results)
+    blast_table_results = BlastTableResult.new(blast_table_results)
     add_plugin_stats('execution_time','parse',Time.now-t1)
 
 
@@ -70,8 +76,8 @@ class PluginUserContaminants < Plugin
 
 
   def exec_seq(seq,blast_query)
-    if blast_query.query_def != seq.seq_name
-      raise "Blast and seq names does not match, blast:#{blast_query.query_def} sn:#{seq.seq_name}"
+    if blast_query.query_id != seq.seq_name
+      raise "Blast and seq names does not match, blast:#{blast_query.query_id} sn:#{seq.seq_name}"
     end
 
     $LOG.debug "[#{self.class.to_s}, seq: #{seq.seq_name}]: looking for classify into the sequence"
@@ -151,6 +157,14 @@ class PluginUserContaminants < Plugin
     comment='Path for user contaminant database'
     default_value = "" #File.join($FORMATTED_DB_PATH,'user_contaminant.fasta')
     params.check_param(errors,'user_contaminant_db','DB',default_value,comment)
+
+    comment='Blast task template for user contaminations'
+    default_value = 'blastn'
+    params.check_param(errors,'blast_task_template_user_contaminants','String',default_value,comment)
+
+    comment='Blast extra params for user contaminations'
+    default_value = ''
+    params.check_param(errors,'blast_extra_params_user_contaminants','String',default_value,comment)
 
     return errors
   end

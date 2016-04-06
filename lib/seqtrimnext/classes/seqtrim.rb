@@ -141,7 +141,6 @@ class Seqtrim
 		default_value=Seqtrimnext::SEQTRIM_VERSION
 		params.check_param(errors,'seqtrim_version','String',default_value,comment)
 
-		
 		if !errors.empty?
           $LOG.error 'Please, define the following global parameters in params file:'
           errors.each do |error|
