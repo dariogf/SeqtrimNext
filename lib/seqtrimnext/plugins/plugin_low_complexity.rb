@@ -16,8 +16,6 @@ class PluginLowComplexity < Plugin
   # do the dust masker instead of blast
   def do_blasts(seqs)
 
-     @reject=(@params.get_param('low_complexity_reject')=='true')
-
      dust_masker=DustMasker.new()
 
      fastas=[]
@@ -77,10 +75,6 @@ class PluginLowComplexity < Plugin
         add_stats('low_complexity',total_dust)
         seq.add_file_tag(0, 'low_complexity', :both, 100)
         seq.add_actions(actions)
-        if @reject
-          seq.seq_rejected=true
-          seq.seq_rejected_by_message='low_complexity'
-        end
       end
 
   end
@@ -99,11 +93,6 @@ class PluginLowComplexity < Plugin
     # default_value = 80
     # params.check_param(errors,'poly_t_percent','Integer',default_value,comment)
     # 
-
-    comment='Is a low_complexity considered a source of sequence rejection? (setting to false will separate low_complexity reads on a separate file)'
-    default_value = 'false'
-    params.check_param(errors,'contaminants_reject','String',default_value,comment)
-
 
     return errors
   end
