@@ -9,11 +9,12 @@ end
 
 # print header  
 if ARGV[0]=='-t'
-	heads=['sample_name','input_count','sequence_count_paired','sequence_count_single','rejected','rejected_percent']
-	puts heads.join("\t")
+	#heads=['sample_name','input_count','sequence_count_paired','sequence_count_single','rejected','rejected_percent']
+	#puts heads.join("\t")
 	ARGV.shift
 end
 
+contaminants={}
 
 ARGV.each do |file_path|
 	sample_name = File.basename(File.expand_path(File.join(file_path,'..','..')))
@@ -25,10 +26,12 @@ ARGV.each do |file_path|
 
 	limit=60	
 	cont.keys.sort{|c1,c2| cont[c2].to_i <=> cont[c1].to_i}.each do |k|
-		puts "#{k} => #{cont[k]}"
-
+		#puts "#{k} => #{cont[k]}"
+		contaminants[k]=(contaminants[k] || 0 ) + cont[k]
 		limit = limit -1
 		break if limit==0
 	end
 
 end
+
+puts JSON::pretty_generate(contaminants)
