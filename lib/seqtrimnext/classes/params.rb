@@ -53,7 +53,7 @@ class Params
             end
 
 
-            $LOG.debug "read: #{params[0]}=#{params[1]}"
+            $LOG.debug "read: #{params[0]}=#{params[1]}" if !$LOG.nil?
             
           else
             comments << line.gsub(/^\s*#/,'')

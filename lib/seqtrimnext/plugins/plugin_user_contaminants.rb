@@ -159,11 +159,13 @@ class PluginUserContaminants < Plugin
     params.check_param(errors,'user_contaminant_db','DB',default_value,comment)
 
     comment='Blast task template for user contaminations'
-    default_value = 'blastn'
+    #default_value = 'blastn'
+    default_value = 'megablast'
     params.check_param(errors,'blast_task_template_user_contaminants','String',default_value,comment)
 
     comment='Blast extra params for user contaminations'
-    default_value = ''
+    #default_value = ''
+    default_value = '"-word_size=22"'
     params.check_param(errors,'blast_extra_params_user_contaminants','String',default_value,comment)
 
     return errors

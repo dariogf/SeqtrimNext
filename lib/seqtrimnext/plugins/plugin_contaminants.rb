@@ -216,19 +216,19 @@ class PluginContaminants < Plugin
     default_value = 'true'
     params.check_param(errors,'contaminants_reject','String',default_value,comment)
 
-
     comment='Path for contaminants database'
     default_value = File.join($FORMATTED_DB_PATH,'contaminants.fasta')
     params.check_param(errors,'contaminants_db','DB',default_value,comment)
 
     comment='Blast task template for contaminations'
-    default_value = 'blastn'
+    #default_value = 'blastn'
+    default_value = 'megablast'
     params.check_param(errors,'blast_task_template_contaminants','String',default_value,comment)
 
     comment='Blast extra params for contaminations'
-    default_value = ''
+    #default_value = ''
+    default_value = '"-word_size=22"'
     params.check_param(errors,'blast_extra_params_contaminants','String',default_value,comment)
-
 
     return errors
   end
