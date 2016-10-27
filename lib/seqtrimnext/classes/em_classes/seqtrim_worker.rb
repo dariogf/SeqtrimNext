@@ -37,7 +37,7 @@ end
 
 ENV['BLASTDB']=$FORMATTED_DB_PATH
 
-OUTPUT_PATH='output_files'
+OUTPUT_PATH='output_files_tmp'
 
 puts "FORMATTED_DB_BLAST in workers: #{$FORMATTED_DB_PATH}"
 

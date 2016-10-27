@@ -109,8 +109,8 @@ end
 
 ENV['BLASTDB']=$FORMATTED_DB_PATH
 
-OUTPUT_PATH='output_files'
-
+OUTPUT_PATH='output_files_tmp'
+DEFAULT_FINAL_OUTPUT_PATH='output_files'
 
 # TODO - COMENTAR todas las clases y metodos para que salga la descripcion cuando hagas rdoc en el terminal
 
@@ -327,6 +327,11 @@ optparse = OptionParser.new do |opts|
     options[:write_in_gzip] = true
   end
 
+  options[:final_output_path] = DEFAULT_FINAL_OUTPUT_PATH
+  opts.on( '-O', '--ouput output_files', 'Output folder. It should not exists. output_files by default') do |folder|
+    options[:final_output_path] = folder
+  end
+
   # This displays the help screen, all programs are
   # assumed to have this option.
   opts.on_tail( '-h', '--help', 'Display this screen' ) do
@@ -399,12 +404,17 @@ if (ARGV.count != 0) || (!required_options) # con esto vemos si hay argumentos,
   exit(-1)
 end
 
+if File.exists?(options[:final_output_path])
+  $LOG.error "Output folder #{options[:final_output_path]} already exists.\n Remove it if you want to launch STN again."
+  exit(-1)
+end
+
 # check for template
 if (!File.exists?(options[:template]))
   if File.exists?(File.join($SEQTRIM_PATH,'templates',options[:template]))
     options[:template] = File.join($SEQTRIM_PATH,'templates',options[:template])
   else
-    $LOG.info "Params file: #{options[:template]} doesn't exists. \n\nYou can use your own template or specify one from this list:\n============================="
+    $LOG.error "Params file: #{options[:template]} doesn't exists. \n\nYou can use your own template or specify one from this list:\n============================="
     puts Dir.glob(File.join($SEQTRIM_PATH,'templates','*.txt')).map{|t| File.basename(t)}
     exit(-1)
   end
@@ -441,7 +451,7 @@ s = Seqtrim.new(options)
 #generate report
 
 if !options[:skip_report] && system("which generate_report.rb > /dev/null ")
-  cmd="generate_report.rb output_files 2> report_generation_errors.log"
+  cmd="generate_report.rb #{OUTPUT_PATH} 2> report_generation_errors.log"
   $LOG.info "Generating report #{cmd}"
   `#{cmd}`
 else
@@ -452,6 +462,10 @@ else
   end
 
   $LOG.info "If you want a detailed report in PDF format, be sure you have installed the optional seqtrimnext_report gem (gem install seqtrimnext_report)#{skip_text}"
+end
+
+if (Seqtrim.exit_status>=0) 
+  FileUtils.mv OUTPUT_PATH, options[:final_output_path]
 end
 
 exit(Seqtrim.exit_status)

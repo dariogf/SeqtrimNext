@@ -24,11 +24,12 @@ ARGV.each do |file_path|
 
 	begin
 		res << sample_name
-		res << stats['sequences']['count']['input_count'] 
+		res << stats['sequences']['count']['input_count']
 		res << stats['sequences']['count']['output_seqs_paired'] 
 		res << stats['sequences']['count']['output_seqs'] 
 		res << stats['sequences']['count']['rejected'] 
-		res << sprintf('%.2f',(stats['sequences']['count']['rejected'].to_f/(stats['sequences']['count']['output_seqs_paired'].to_i+stats['sequences']['count']['output_seqs'].to_i).to_f)*100) 
+		#res << sprintf('%.2f',(stats['sequences']['count']['rejected'].to_f/(stats['sequences']['count']['output_seqs_paired'].to_i+stats['sequences']['count']['output_seqs'].to_i).to_f)*100) 
+		res << sprintf('%.2f',(stats['sequences']['count']['rejected'].to_f/stats['sequences']['count']['input_count'].to_f)*100)
 		
 	rescue Excepcion => e
 
