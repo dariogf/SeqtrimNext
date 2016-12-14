@@ -6,7 +6,7 @@ class InstallDatabase
   def initialize(type,db_path)
     
     
-    types=['core','cont_bacteria','cont_fungi','cont_mitochondrias','cont_plastids','cont_ribosome','cont_viruses']
+    types=['core','cont_bacteria','cont_fungi','cont_mitochondrias','cont_plastids','cont_ribosome','cont_viruses','adapters_illumina']
     
     if types.include?(type)
       
